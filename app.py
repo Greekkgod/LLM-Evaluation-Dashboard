@@ -12,239 +12,236 @@ from pathlib import Path
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="LLM Eval Dashboard",
-    page_icon="⚡",
+    page_title="Model Benchmark Studio",
+    page_icon="🔬",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# ── Custom CSS ────────────────────────────────────────────────────────────────
+# ── Enhanced Professional CSS ────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-* { font-family: 'Syne', sans-serif; }
+* { font-family: 'Inter', sans-serif; }
 code, .stCode { font-family: 'JetBrains Mono', monospace !important; }
 
-/* Dark industrial theme */
-.stApp {
-    background-color: #0a0a0f;
-    color: #e8e8e0;
-}
+.stApp { background: linear-gradient(135deg, #f8f9fa 0%, #eef2f5 100%); color: #1a1f36; }
+[data-testid="stSidebar"] { display: none; }
 
-[data-testid="stSidebar"] {
-    background-color: #0f0f18 !important;
-    border-right: 1px solid #1e1e2e;
+/* Hero/Header */
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 48px 32px;
+    border-radius: 12px;
+    color: white;
+    margin-bottom: 32px;
+    box-shadow: 0 10px 40px rgba(102, 126, 234, 0.2);
 }
+.hero-title { font-size: 2.8rem; font-weight: 800; margin: 0; line-height: 1.2; }
+.hero-subtitle { font-size: 1.1rem; opacity: 0.95; margin-top: 8px; font-weight: 300; }
+.hero-desc { font-size: 0.95rem; opacity: 0.85; margin-top: 16px; max-width: 600px; line-height: 1.6; }
 
-/* Metric cards */
-.metric-card {
-    background: linear-gradient(135deg, #0f0f1a 0%, #141428 100%);
-    border: 1px solid #2a2a4a;
-    border-radius: 4px;
-    padding: 20px;
-    margin: 8px 0;
-    position: relative;
-    overflow: hidden;
+/* Wizard */
+.wizard-container {
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 24px;
+    border: 1px solid #e0e4f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
-.metric-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 3px; height: 100%;
-    background: #00ff88;
-}
-.metric-card.orange::before { background: #ff6b35; }
-.metric-card.blue::before { background: #4fc3f7; }
-.metric-card.purple::before { background: #b39ddb; }
-
-.metric-value {
-    font-size: 2.4rem;
-    font-weight: 800;
-    color: #00ff88;
-    line-height: 1;
-    font-family: 'JetBrains Mono', monospace;
-}
-.metric-label {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    color: #666680;
-    margin-top: 4px;
-}
-
-/* Section headers */
-.section-header {
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    color: #444460;
-    border-bottom: 1px solid #1e1e2e;
-    padding-bottom: 8px;
-    margin: 24px 0 16px 0;
-}
-
-/* Insights box */
-.insights-box {
-    background: linear-gradient(135deg, #0d2b1a 0%, #0a1a1e 100%);
-    border: 1px solid #00ff8840;
-    border-left: 3px solid #00ff88;
-    border-radius: 4px;
-    padding: 16px;
-    margin: 12px 0;
-    font-size: 0.85rem;
-    line-height: 1.8;
-    color: #99bb99;
-}
-
-/* Model tag pills */
-.model-tag {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 2px;
-    font-size: 0.7rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-}
-.tag-llama { background: #0d2b1a; color: #00ff88; border: 1px solid #00ff8840; }
-.tag-mixtral { background: #2b1a0d; color: #ff9944; border: 1px solid #ff994440; }
-.tag-gemma { background: #0d1a2b; color: #4fc3f7; border: 1px solid #4fc3f740; }
-
-/* Score bar */
-.score-bar-container { margin: 4px 0; }
-.score-bar-label {
-    font-size: 0.68rem;
-    color: #888899;
+.wizard-header {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 2px;
-}
-.score-bar {
-    height: 4px;
-    border-radius: 2px;
-    background: #1e1e2e;
-    overflow: hidden;
-}
-.score-fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width 0.8s ease;
-}
-
-/* Response comparison box */
-.response-box {
-    background: #0d0d1a;
-    border: 1px solid #1e1e2e;
-    border-radius: 4px;
-    padding: 16px;
-    font-size: 0.85rem;
-    line-height: 1.7;
-    color: #c8c8d0;
-    font-family: 'JetBrains Mono', monospace;
-    white-space: pre-wrap;
-    max-height: 280px;
-    overflow-y: auto;
-}
-
-.judge-verdict {
-    background: #0a1a0d;
-    border: 1px solid #00ff8830;
-    border-left: 3px solid #00ff88;
-    border-radius: 0 4px 4px 0;
-    padding: 12px 16px;
-    font-size: 0.82rem;
-    color: #99bb99;
-    margin-top: 8px;
-}
-
-/* Leaderboard */
-.leaderboard-row {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 12px 16px;
-    background: #0d0d1a;
-    border: 1px solid #1e1e2e;
-    border-radius: 4px;
-    margin: 8px 0;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.wizard-step-indicator {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #667eea;
+    font-weight: 700;
+}
+.wizard-step-number {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    background: #667eea;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 32px;
+    font-weight: 700;
     font-size: 0.9rem;
 }
 
+/* Model cards */
+.model-option {
+    background: white;
+    border: 2px solid #e0e4f0;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 8px 0;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.model-option:hover {
+    border-color: #667eea;
+    background: #f5f7ff;
+    transform: translateX(4px);
+}
+.model-option.selected {
+    border-color: #667eea;
+    background: #f5f7ff;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+.model-name { font-weight: 600; color: #1a1f36; font-size: 1rem; }
+.model-desc { font-size: 0.85rem; color: #6b7280; margin-top: 4px; }
+
+/* Progress */
+.progress-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    font-size: 0.95rem;
+    border-bottom: 1px solid #f0f4f8;
+}
+.progress-item:last-child { border-bottom: none; }
+.progress-icon { font-size: 1.2rem; }
+.progress-text { flex: 1; }
+.progress-status { font-size: 0.85rem; color: #9ca3af; }
+
+/* Insights */
+.insight-card {
+    background: linear-gradient(135deg, #f5f7ff 0%, #fafbff 100%);
+    border: 1px solid #e0e4f0;
+    border-left: 4px solid #667eea;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 12px 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #374151;
+}
+.insight-card strong { color: #1a1f36; font-weight: 600; }
+
+/* Leaderboard */
+.leaderboard-container {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid #e0e4f0;
+    margin: 16px 0;
+}
+.leaderboard-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid #f0f4f8;
+}
+.leaderboard-row:last-child { border-bottom: none; }
 .leaderboard-rank {
-    font-weight: 800;
-    font-family: 'JetBrains Mono', monospace;
-    color: #ff9944;
     font-size: 1.4rem;
+    font-weight: 800;
+    color: #667eea;
     min-width: 40px;
 }
+.leaderboard-medal { font-size: 1.3rem; margin-right: 4px; }
+.leaderboard-info {
+    flex: 1;
+    margin-left: 16px;
+}
+.leaderboard-model { font-weight: 600; color: #1a1f36; }
+.leaderboard-evals { font-size: 0.85rem; color: #9ca3af; }
+.leaderboard-score {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #667eea;
+    font-family: 'JetBrains Mono', monospace;
+}
 
-.leaderboard-medal { font-size: 1.3rem; margin-right: 8px; }
+/* Metric cards */
+.metric-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 16px 0;
+}
+.metric-card {
+    background: white;
+    border: 1px solid #e0e4f0;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+}
+.metric-value { font-size: 2rem; font-weight: 800; color: #667eea; }
+.metric-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: #9ca3af; margin-top: 4px; }
 
-/* Streamlit overrides */
+/* Buttons */
 .stButton > button {
-    background: #00ff88 !important;
-    color: #0a0a0f !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
     border: none !important;
-    border-radius: 2px !important;
-    font-family: 'Syne', sans-serif !important;
-    font-weight: 700 !important;
-    font-size: 0.85rem !important;
-    letter-spacing: 0.1em !important;
-    text-transform: uppercase !important;
-    padding: 10px 28px !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    letter-spacing: 0.05em !important;
+    padding: 12px 24px !important;
+    transition: all 0.2s !important;
 }
 .stButton > button:hover {
-    background: #00cc6a !important;
-    transform: translateY(-1px);
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3) !important;
 }
 
+/* Form elements */
 .stSelectbox label, .stSlider label, .stTextInput label {
-    color: #666680 !important;
-    font-size: 0.7rem !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.15em !important;
+    color: #1a1f36 !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
 }
 
-h1 { 
-    font-family: 'Syne', sans-serif !important;
-    font-weight: 800 !important;
-    color: #e8e8e0 !important;
-}
+h1 { color: #1a1f36 !important; font-weight: 800 !important; }
+h2 { color: #1a1f36 !important; font-weight: 700 !important; margin-top: 24px !important; }
+h3 { color: #374151 !important; font-weight: 600 !important; }
 
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: #9ca3af;
+}
+.empty-icon { font-size: 3rem; margin-bottom: 12px; }
+.empty-title { font-size: 1.2rem; font-weight: 600; color: #1a1f36; margin: 12px 0; }
+
+/* Tabs */
 .stTabs [data-baseweb="tab"] {
-    font-family: 'Syne', sans-serif !important;
-    font-size: 0.75rem !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.1em !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
 }
 
-/* Hide default streamlit branding */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
+/* Hide streamlit branding */
+#MainMenu { visibility: hidden; }
+footer { visibility: hidden; }
 </style>
 """, unsafe_allow_html=True)
 
-
 # ── Utility functions ─────────────────────────────────────────────────────────
 def get_leaderboard_path():
-    """Get the path to the leaderboard CSV."""
     return Path("leaderboard.csv")
 
-
 def load_leaderboard():
-    """Load accumulated leaderboard data."""
     path = get_leaderboard_path()
     if path.exists():
         return pd.read_csv(path)
     return pd.DataFrame()
 
-
 def save_to_leaderboard(results_df):
-    """Append results to leaderboard CSV."""
     leaderboard = load_leaderboard()
-    
-    # Prepare results for leaderboard (aggregated by model)
     model_stats = results_df.groupby("model").agg({
         "instruction_following": ["mean", "std"],
         "factual_accuracy": ["mean", "std"],
@@ -262,632 +259,588 @@ def save_to_leaderboard(results_df):
             "num_evals": len(results_df[results_df["model"] == model]),
             "overall_mean": model_stats.loc[model, ("overall", "mean")],
             "overall_std": model_stats.loc[model, ("overall", "std")],
-            "instruction_following_mean": model_stats.loc[model, ("instruction_following", "mean")],
-            "factual_accuracy_mean": model_stats.loc[model, ("factual_accuracy", "mean")],
-            "conciseness_mean": model_stats.loc[model, ("conciseness", "mean")],
-            "naturalness_mean": model_stats.loc[model, ("naturalness", "mean")],
-            "format_adherence_mean": model_stats.loc[model, ("format_adherence", "mean")],
         }
         leaderboard = pd.concat([leaderboard, pd.DataFrame([entry])], ignore_index=True)
     
     leaderboard.to_csv(get_leaderboard_path(), index=False)
     return leaderboard
 
-
-def generate_insights(df, selected_models):
-    """Generate AI-interpreted findings from results."""
+def plain_language_insight(results_df, selected_models):
+    """Generate human-readable insights."""
     insights = []
     
-    model_avg = df.groupby("model")[["instruction_following", "factual_accuracy",
-                                      "conciseness", "naturalness", "format_adherence"]].mean()
+    model_avg = results_df.groupby("model")[["instruction_following", "factual_accuracy",
+                                              "conciseness", "naturalness", "format_adherence"]].mean()
+    model_avg["overall"] = model_avg.mean(axis=1)
     
-    # Find best/worst performers per dimension
-    dims = ["instruction_following", "factual_accuracy", "conciseness", "naturalness", "format_adherence"]
-    dim_names = ["Instruction Following", "Factual Accuracy", "Conciseness", "Naturalness", "Format Adherence"]
-    
-    # Overall winner
-    best_overall = model_avg["instruction_following"].mean() + model_avg["factual_accuracy"].mean() + \
-                   model_avg["conciseness"].mean() + model_avg["naturalness"].mean() + \
-                   model_avg["format_adherence"].mean()
-    best_model = model_avg.sum(axis=1).idxmax()
+    best_model = model_avg["overall"].idxmax()
+    best_score = model_avg.loc[best_model, "overall"]
     best_label = MODELS[best_model]["label"]
-    overall_score = round((model_avg.sum(axis=1).max() / 5), 2)
-    insights.append(f"🏆 {best_label} achieves the highest overall score at {overall_score}/10, demonstrating balanced performance across all evaluation dimensions.")
     
-    # Category-level insights
-    cat_perf = df.groupby(["model", "category"])["overall"].mean().unstack()
-    if len(cat_perf.columns) > 1:
-        best_reasoning = cat_perf.loc[:, "reasoning"].idxmax() if "reasoning" in cat_perf.columns else best_model
-        best_creative = cat_perf.loc[:, "creative_writing"].idxmax() if "creative_writing" in cat_perf.columns else best_model
-        insights.append(f"📊 Category specialists: {MODELS[best_reasoning]['label']} excels at reasoning tasks, while {MODELS[best_creative]['label']} delivers superior creative writing output.")
+    insights.append(f"🏆 **{best_label} wins overall** with a score of {best_score:.1f}/10. It's the most well-rounded performer across all dimensions.")
     
-    # Variance analysis (confidence)
-    std_by_model = df.groupby("model")["overall"].std()
-    most_consistent = std_by_model.idxmin()
-    insights.append(f"🎯 Consistency: {MODELS[most_consistent]['label']} shows the most stable performance (σ={std_by_model[most_consistent]:.2f}), indicating reliable output quality across diverse prompts.")
-    
-    # Dimension strengths
+    # Find strengths
     for model in selected_models:
         if model in model_avg.index:
-            strong_dims = [dim_names[i] for i, v in enumerate(model_avg.loc[model, dims]) if v >= 8.0]
-            weak_dims = [dim_names[i] for i, v in enumerate(model_avg.loc[model, dims]) if v <= 6.0]
-            if strong_dims:
-                insights.append(f"✓ {MODELS[model]['label']} demonstrates strength in {' and '.join(strong_dims)} tasks.")
+            scores = model_avg.loc[model]
+            best_dim = scores.idxmax()
+            best_dim_score = scores[best_dim]
+            if best_dim != "overall" and best_dim_score >= 8.0:
+                dim_name = best_dim.replace("_", " ").title()
+                insights.append(f"💡 **{MODELS[model]['label']}** excels at {dim_name} ({best_dim_score:.1f}/10)—use it for tasks requiring this skill.")
     
-    return insights[:4]  # Return top 4 insights
-
-
-def calculate_variance_by_model(df):
-    """Calculate variance metrics for confidence intervals."""
-    variance_data = []
+    # Consistency
+    std_by_model = results_df.groupby("model")["overall"].std()
+    most_consistent = std_by_model.idxmin()
+    if std_by_model[most_consistent] < 1.5:
+        insights.append(f"🎯 **{MODELS[most_consistent]['label']}** is the most consistent performer. Its quality doesn't vary much between different prompts.")
     
-    for model in df["model"].unique():
-        model_data = df[df["model"] == model]
-        overall_scores = model_data["overall"].values
-        
-        variance_data.append({
-            "model": MODELS[model]["label"],
-            "mean": overall_scores.mean(),
-            "std": overall_scores.std(),
-            "min": overall_scores.min(),
-            "max": overall_scores.max(),
-            "ci_95_lower": overall_scores.mean() - 1.96 * overall_scores.std() / (len(overall_scores) ** 0.5),
-            "ci_95_upper": overall_scores.mean() + 1.96 * overall_scores.std() / (len(overall_scores) ** 0.5),
-        })
+    return insights[:3]
+
+def generate_progress_updates(step, total_steps, current_model, current_category, current_phase):
+    """Generate human-friendly progress messages."""
+    progress = step / total_steps
+    percent = int(progress * 100)
     
-    return pd.DataFrame(variance_data)
+    messages = []
+    model_label = MODELS[current_model]["label"]
+    
+    if current_phase == "response":
+        messages.append(f"🤖 Asking {model_label} about {current_category}...")
+        messages.append(f"⏳ This takes a moment...")
+    elif current_phase == "judge":
+        messages.append(f"🧑‍⚖️ Judge evaluating the response...")
+        messages.append(f"📊 Scoring on 5 dimensions...")
+    
+    messages.append(f"📈 Progress: {percent}% ({step}/{total_steps})")
+    
+    return messages, progress
 
-
-# ── Sidebar ───────────────────────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown("## ⚡ LLM EVAL")
-    st.markdown('<div class="section-header">Configuration</div>', unsafe_allow_html=True)
-
-    api_key = st.text_input("Groq API Key", type="password", placeholder="gsk_...")
-
-    st.markdown('<div class="section-header">Models</div>', unsafe_allow_html=True)
-    selected_models = st.multiselect(
-        "Select models to compare",
-        options=list(MODELS.keys()),
-        default=list(MODELS.keys()),
-        format_func=lambda x: MODELS[x]["label"]
-    )
-
-    st.markdown('<div class="section-header">Evaluation</div>', unsafe_allow_html=True)
-    selected_categories = st.multiselect(
-        "Prompt categories",
-        options=list(PROMPT_CATEGORIES.keys()),
-        default=list(PROMPT_CATEGORIES.keys())
-    )
-
-    num_prompts = st.slider("Prompts per category", 1, 5, 2)
-    num_runs = st.slider("Runs per prompt (for confidence intervals)", 1, 3, 1)
-
-    st.markdown('<div class="section-header">Judge Model</div>', unsafe_allow_html=True)
-    judge_model = st.selectbox(
-        "LLM-as-judge",
-        options=["llama-3.1-8b-instant", "mixtral-8x7b-32768"],
-        index=0
-    )
-
-    st.markdown("---")
-    run_eval = st.button("▶  RUN EVALUATION", use_container_width=True)
-
-    st.markdown("""
-    <div style='margin-top: 32px; font-size: 0.65rem; color: #333350; line-height: 1.8;'>
-    EVAL DIMENSIONS<br>
-    · Instruction Following<br>
-    · Factual Accuracy<br>
-    · Response Conciseness<br>
-    · Natural Language Quality<br>
-    · Format Adherence<br>
-    <br>
-    RUN {num_runs}x for variance analysis<br>
-    All results saved to leaderboard
-    </div>
-    """, unsafe_allow_html=True)
-
-
-# ── Session state ─────────────────────────────────────────────────────────────
-if "results" not in st.session_state:
-    st.session_state.results = None
+# ── Session State ─────────────────────────────────────────────────────────────
+if "wizard_step" not in st.session_state:
+    st.session_state.wizard_step = 0  # 0=welcome, 1=models, 2=categories, 3=config, 4=ready
+if "eval_results" not in st.session_state:
+    st.session_state.eval_results = None
 if "eval_complete" not in st.session_state:
     st.session_state.eval_complete = False
+if "wizard_state" not in st.session_state:
+    st.session_state.wizard_state = {
+        "models": list(MODELS.keys()),
+        "categories": list(PROMPT_CATEGORIES.keys()),
+        "num_prompts": 2,
+        "num_runs": 1,
+        "judge_model": "llama-3.1-8b-instant",
+        "api_key": ""
+    }
 
+# ── Main Header ───────────────────────────────────────────────────────────────
+st.markdown("""
+<div class="hero-section">
+    <div class="hero-title">🔬 Model Benchmark Studio</div>
+    <div class="hero-subtitle">Find the perfect model for your use case</div>
+    <div class="hero-desc">Benchmark open-source LLMs on real tasks. Compare reasoning, creativity, accuracy, and more. All results saved to your persistent leaderboard.</div>
+</div>
+""", unsafe_allow_html=True)
 
-# ── Main content ──────────────────────────────────────────────────────────────
-st.markdown("# LLM Evaluation Dashboard")
-st.markdown(
-    '<p style="color: #444460; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; margin-top: -12px;">Professional benchmarking · Groq API · LLM-as-Judge · Confidence Intervals</p>',
-    unsafe_allow_html=True
+# ── Get Leaderboard for quick stats ───────────────────────────────────────────
+leaderboard = load_leaderboard()
+
+if not leaderboard.empty:
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        total_evals = leaderboard["num_evals"].sum()
+        st.metric("Total Evaluations Run", int(total_evals))
+    with col2:
+        unique_models = leaderboard["model"].nunique()
+        st.metric("Models Tested", int(unique_models))
+    with col3:
+        best_overall = leaderboard.groupby("model")["overall_mean"].mean().max()
+        st.metric("Highest Score Achieved", f"{best_overall:.2f}/10")
+
+st.divider()
+
+# ── Main Tabs ─────────────────────────────────────────────────────────────────
+tab_eval, tab_leaderboard, tab_insights, tab_custom = st.tabs(
+    ["🚀 Run Evaluation", "🏆 Leaderboard", "💡 Insights", "⚙️ Custom Test"]
 )
 
-# ── Navigation ────────────────────────────────────────────────────────────────
-nav_tab1, nav_tab2, nav_tab3, nav_tab4 = st.tabs(["📊 Current Run", "📈 Leaderboard", "🎯 Insights", "⚙️ Custom Eval"])
-
-# ── Run evaluation ────────────────────────────────────────────────────────────
-if run_eval:
-    if not api_key:
-        st.error("⚠ Enter your Groq API key in the sidebar.")
-    elif not selected_models:
-        st.error("⚠ Select at least one model.")
-    elif not selected_categories:
-        st.error("⚠ Select at least one prompt category.")
-    else:
-        with st.spinner("Running evaluation..."):
-            progress_bar = st.progress(0)
-            status_text = st.empty()
-
-            results = run_evaluation(
-                api_key=api_key,
-                models=selected_models,
-                categories=selected_categories,
-                num_prompts=num_prompts,
-                judge_model=judge_model,
-                num_runs=num_runs,
-                progress_callback=lambda p, msg: (
-                    progress_bar.progress(min(p, 0.99)),
-                    status_text.markdown(f'<p style="color: #666680; font-size: 0.8rem;">{msg}</p>', unsafe_allow_html=True)
-                )
+# ════════════════════════════════════════════════════════════════════════════
+# TAB 1: RUN EVALUATION (Setup Wizard)
+# ════════════════════════════════════════════════════════════════════════════
+with tab_eval:
+    
+    # Welcome screen
+    if st.session_state.wizard_step == 0:
+        st.markdown("""
+        ### Welcome! Let's benchmark some models.
+        
+        This wizard will guide you through 3 simple steps:
+        1. **Choose models** to test
+        2. **Pick what to test them on** (reasoning, creativity, etc.)
+        3. **Run and compare**
+        
+        Ready to see which model is best for your needs? Let's go! 👇
+        """)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("▶ Start Benchmark", use_container_width=True, key="start_wizard"):
+                st.session_state.wizard_step = 1
+                st.rerun()
+        with col2:
+            if st.button("Skip to Leaderboard", use_container_width=True):
+                st.switch_page("app.py?page=leaderboard")
+    
+    # Step 1: Choose Models
+    elif st.session_state.wizard_step == 1:
+        st.markdown("""
+        <div class="wizard-container">
+            <div class="wizard-header">
+                <div class="wizard-step-number">1</div>
+                <div>
+                    <div class="wizard-step-indicator">Step 1 of 3</div>
+                    <h3 style="margin:0;">Which models do you want to benchmark?</h3>
+                </div>
+            </div>
+            <p style="color: #6b7280; margin-bottom: 20px;">Select one or more models. We'll run them through the same tests and show you how they compare.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        selected = st.multiselect(
+            "Pick your models",
+            options=list(MODELS.keys()),
+            default=st.session_state.wizard_state["models"],
+            format_func=lambda x: MODELS[x]["label"],
+            label_visibility="collapsed"
+        )
+        
+        if selected:
+            st.session_state.wizard_state["models"] = selected
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("← Back", use_container_width=True):
+                    st.session_state.wizard_step = 0
+                    st.rerun()
+            with col2:
+                if st.button("Next →", use_container_width=True):
+                    st.session_state.wizard_step = 2
+                    st.rerun()
+        else:
+            st.warning("Please select at least one model")
+    
+    # Step 2: Choose Categories
+    elif st.session_state.wizard_step == 2:
+        st.markdown("""
+        <div class="wizard-container">
+            <div class="wizard-header">
+                <div class="wizard-step-number">2</div>
+                <div>
+                    <div class="wizard-step-indicator">Step 2 of 3</div>
+                    <h3 style="margin:0;">What should we test them on?</h3>
+                </div>
+            </div>
+            <p style="color: #6b7280; margin-bottom: 20px;">Choose one or more evaluation categories. Models will be tested on prompts from each category.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        category_descriptions = {
+            "instruction_following": "Can the model follow strict rules and constraints?",
+            "factual_accuracy": "Does it know facts and avoid making things up?",
+            "creative_writing": "Is it creative, natural, and engaging?",
+            "reasoning": "Can it think through complex problems?",
+            "summarization": "Can it extract and compress information?"
+        }
+        
+        for cat in PROMPT_CATEGORIES.keys():
+            st.checkbox(
+                f"**{cat.replace('_', ' ').title()}** — {category_descriptions.get(cat, '')}",
+                value=cat in st.session_state.wizard_state["categories"],
+                key=f"cat_{cat}",
+                on_change=lambda: None
             )
-
-            st.session_state.results = results
+        
+        # Update state from checkboxes
+        selected_cats = [cat for cat in PROMPT_CATEGORIES.keys() if st.session_state.get(f"cat_{cat}")]
+        if selected_cats:
+            st.session_state.wizard_state["categories"] = selected_cats
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("← Back", use_container_width=True):
+                st.session_state.wizard_step = 1
+                st.rerun()
+        with col2:
+            if st.session_state.wizard_state["categories"]:
+                if st.button("Next →", use_container_width=True):
+                    st.session_state.wizard_step = 3
+                    st.rerun()
+            else:
+                st.warning("Please select at least one category")
+    
+    # Step 3: Fine-tune Settings
+    elif st.session_state.wizard_step == 3:
+        st.markdown("""
+        <div class="wizard-container">
+            <div class="wizard-header">
+                <div class="wizard-step-number">3</div>
+                <div>
+                    <div class="wizard-step-indicator">Step 3 of 3</div>
+                    <h3 style="margin:0;">Let's fine-tune your benchmark</h3>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            api_key = st.text_input(
+                "🔑 Groq API Key (get free at console.groq.com)",
+                type="password",
+                placeholder="gsk_...",
+                value=st.session_state.wizard_state.get("api_key", ""),
+                help="Your API key stays secure and is never saved."
+            )
+            st.session_state.wizard_state["api_key"] = api_key
+        
+        with col2:
+            num_prompts = st.slider(
+                "📝 How many prompts per category?",
+                min_value=1,
+                max_value=5,
+                value=st.session_state.wizard_state["num_prompts"],
+                help="More = more thorough, but takes longer"
+            )
+            st.session_state.wizard_state["num_prompts"] = num_prompts
+        
+        num_runs = st.slider(
+            "🔄 Run each prompt N times (for variance analysis)",
+            min_value=1,
+            max_value=3,
+            value=st.session_state.wizard_state["num_runs"],
+            help="Multiple runs show consistency. 1x is quick, 3x is thorough."
+        )
+        st.session_state.wizard_state["num_runs"] = num_runs
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("← Back", use_container_width=True):
+                st.session_state.wizard_step = 2
+                st.rerun()
+        with col2:
+            if api_key:
+                if st.button("🚀 Start Benchmark", use_container_width=True, type="primary"):
+                    st.session_state.wizard_step = 4
+                    st.rerun()
+            else:
+                st.error("⚠️ Please enter your Groq API key")
+    
+    # Step 4: Running Evaluation
+    elif st.session_state.wizard_step == 4:
+        st.markdown("""
+        <div class="wizard-container">
+            <div class="wizard-header">
+                <div class="wizard-step-number">🔄</div>
+                <div>
+                    <div class="wizard-step-indicator">Running Benchmark</div>
+                    <h3 style="margin:0;">Your benchmark is running</h3>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        progress_container = st.container()
+        progress_bar = progress_container.progress(0)
+        progress_log = progress_container.empty()
+        
+        try:
+            all_results = []
+            total_evals = (len(st.session_state.wizard_state["models"]) * 
+                          len(st.session_state.wizard_state["categories"]) * 
+                          st.session_state.wizard_state["num_prompts"] * 
+                          st.session_state.wizard_state["num_runs"])
+            
+            eval_count = 0
+            messages_log = []
+            
+            def progress_callback(progress, message):
+                nonlocal eval_count, messages_log
+                eval_count += 1
+                messages_log.append(message)
+                
+                # Keep last 8 messages
+                if len(messages_log) > 8:
+                    messages_log = messages_log[-8:]
+                
+                progress_bar.progress(min(progress, 0.99))
+                with progress_log:
+                    st.markdown("**Recent activity:**")
+                    for msg in messages_log:
+                        st.caption(f"✓ {msg}")
+            
+            results = run_evaluation(
+                api_key=st.session_state.wizard_state["api_key"],
+                models=st.session_state.wizard_state["models"],
+                categories=st.session_state.wizard_state["categories"],
+                num_prompts=st.session_state.wizard_state["num_prompts"],
+                judge_model=st.session_state.wizard_state["judge_model"],
+                num_runs=st.session_state.wizard_state["num_runs"],
+                progress_callback=progress_callback
+            )
+            
+            st.session_state.eval_results = results
             st.session_state.eval_complete = True
-            progress_bar.empty()
-            status_text.empty()
             
             # Save to leaderboard
             results_df = pd.DataFrame(results)
             save_to_leaderboard(results_df)
             
-            st.success("✓ Evaluation complete and saved to leaderboard")
-
-
-# ── TAB 1: Current Run Results ────────────────────────────────────────────────
-with nav_tab1:
-    if st.session_state.results:
-        results = st.session_state.results
+            progress_bar.progress(1.0)
+            progress_log.empty()
+            
+            st.success("✅ Benchmark complete! Your results have been saved to the leaderboard.")
+            st.session_state.wizard_step = 5
+            st.rerun()
+            
+        except Exception as e:
+            st.error(f"❌ Oops! Something went wrong: {str(e)}")
+            st.info("💡 **Troubleshooting:**\n- Check your API key is valid\n- Make sure you have API credits\n- Try with fewer prompts or runs")
+            if st.button("← Try Again"):
+                st.session_state.wizard_step = 3
+                st.rerun()
+    
+    # Step 5: Results Display
+    elif st.session_state.wizard_step == 5 and st.session_state.eval_results:
+        results = st.session_state.eval_results
         df = pd.DataFrame(results)
-
-        # ── Summary metrics ───────────────────────────────────────────────────
-        st.markdown('<div class="section-header">Summary Metrics</div>', unsafe_allow_html=True)
-
-        # Aggregate by model (average across runs)
+        
+        st.markdown("### 🎯 Your Benchmark Results")
+        
+        # Aggregate scores
         model_avg = df.groupby("model")[["instruction_following", "factual_accuracy",
                                           "conciseness", "naturalness", "format_adherence"]].mean()
         model_avg["overall"] = model_avg.mean(axis=1)
-
-        best_model_key = model_avg["overall"].idxmax()
-        best_model_label = MODELS[best_model_key]["label"]
-        best_score = model_avg.loc[best_model_key, "overall"]
-
+        
+        # Key metrics
         col1, col2, col3, col4 = st.columns(4)
-
+        best_model = model_avg["overall"].idxmax()
         with col1:
-            st.markdown(f"""
-            <div class="metric-card">
-                <div class="metric-value">{best_score:.1f}</div>
-                <div class="metric-label">Top Overall Score</div>
-                <div style="margin-top: 8px; font-size: 0.72rem; color: #00ff88;">{best_model_label}</div>
-            </div>""", unsafe_allow_html=True)
-
+            st.metric("🏆 Top Performer", MODELS[best_model]["label"], 
+                     f"{model_avg.loc[best_model, 'overall']:.2f}/10")
         with col2:
-            total_evals = len(df)
-            st.markdown(f"""
-            <div class="metric-card orange">
-                <div class="metric-value" style="color: #ff6b35;">{total_evals}</div>
-                <div class="metric-label">Total Evaluations</div>
-                <div style="margin-top: 8px; font-size: 0.72rem; color: #888;">{len(df) // len(selected_models)} prompts × {len(selected_models)} models × {num_runs} runs</div>
-            </div>""", unsafe_allow_html=True)
-
+            st.metric("📊 Total Evals", len(df))
         with col3:
             best_instr = model_avg["instruction_following"].idxmax()
-            st.markdown(f"""
-            <div class="metric-card blue">
-                <div class="metric-value" style="color: #4fc3f7;">{model_avg.loc[best_instr, 'instruction_following']:.1f}</div>
-                <div class="metric-label">Best Instruction Following</div>
-                <div style="margin-top: 8px; font-size: 0.72rem; color: #4fc3f7;">{MODELS[best_instr]['label']}</div>
-            </div>""", unsafe_allow_html=True)
-
+            st.metric("🎯 Best at Following Orders", MODELS[best_instr]["label"])
         with col4:
             best_nat = model_avg["naturalness"].idxmax()
-            st.markdown(f"""
-            <div class="metric-card purple">
-                <div class="metric-value" style="color: #b39ddb;">{model_avg.loc[best_nat, 'naturalness']:.1f}</div>
-                <div class="metric-label">Most Natural Output</div>
-                <div style="margin-top: 8px; font-size: 0.72rem; color: #b39ddb;">{MODELS[best_nat]['label']}</div>
-            </div>""", unsafe_allow_html=True)
-
-        # ── Variance Analysis (Confidence Intervals) ──────────────────────────
-        if num_runs > 1:
-            st.markdown('<div class="section-header">Confidence Intervals (95%)</div>', unsafe_allow_html=True)
-            variance_df = calculate_variance_by_model(df)
+            st.metric("🗣️ Most Natural", MODELS[best_nat]["label"])
+        
+        # Plain language insights
+        st.markdown("### 💡 Key Findings")
+        insights = plain_language_insight(df, st.session_state.wizard_state["models"])
+        for insight in insights:
+            st.markdown(f'<div class="insight-card">{insight}</div>', unsafe_allow_html=True)
+        
+        # Detailed charts
+        with st.expander("📊 See detailed breakdown"):
+            col1, col2 = st.columns(2)
             
-            fig_var = go.Figure()
-            for _, row in variance_df.iterrows():
-                colors = {"Llama 3.1 8B": "#00ff88", "Mixtral 8x7B": "#ff9944", "Gemma 2 9B": "#4fc3f7"}
-                color = colors.get(row["model"], "#ffffff")
-                
-                fig_var.add_trace(go.Scatter(
-                    x=[row["ci_95_lower"], row["mean"], row["ci_95_upper"]],
-                    y=[row["model"], row["model"], row["model"]],
-                    mode='lines+markers',
-                    name=row["model"],
-                    line=dict(color=color, width=2),
-                    marker=dict(size=10, color=color),
-                    error_x=dict(
-                        type='data',
-                        symmetric=False,
-                        array=[row["mean"] - row["ci_95_lower"]],
-                        arrayminus=[row["ci_95_upper"] - row["mean"]]
-                    )
-                ))
-            
-            fig_var.update_layout(
-                paper_bgcolor="#0a0a0f",
-                plot_bgcolor="#0d0d1a",
-                font=dict(color="#e8e8e0"),
-                xaxis_title="Overall Score ± 95% CI",
-                xaxis=dict(gridcolor="#1e1e2e", range=[0, 10.5]),
-                yaxis=dict(gridcolor="#1e1e2e"),
-                height=300,
-                showlegend=False,
-                margin=dict(l=150, r=20, t=20, b=20)
-            )
-            st.plotly_chart(fig_var, use_container_width=True)
-            
-            st.markdown("""
-            <p style="font-size: 0.75rem; color: #666680; font-style: italic;">
-            Confidence intervals show score variance across multiple runs. Narrower intervals indicate more consistent performance.
-            </p>
-            """, unsafe_allow_html=True)
-
-        # ── Tabs ──────────────────────────────────────────────────────────────
-        tab1, tab2, tab3, tab4 = st.tabs(["📊 Radar & Scores", "🗂️ Category Breakdown", "🔬 Response Comparison", "📋 Raw Data"])
-
-        colors = {"llama-3.1-8b-instant": "#00ff88",
-                  "mixtral-8x7b-32768": "#ff9944",
-                  "gemma2-9b-it": "#4fc3f7"}
-
-        with tab1:
-            col_left, col_right = st.columns([1, 1])
-
-            with col_left:
-                st.markdown('<div class="section-header">Radar — All Dimensions</div>', unsafe_allow_html=True)
-
+            with col1:
+                # Radar chart
                 dimensions = ["instruction_following", "factual_accuracy", "conciseness",
-                              "naturalness", "format_adherence"]
-                dim_labels = ["Instruction\nFollowing", "Factual\nAccuracy",
-                              "Conciseness", "Naturalness", "Format\nAdherence"]
-
+                            "naturalness", "format_adherence"]
+                dim_labels = ["Instruction", "Accuracy", "Conciseness", "Naturalness", "Format"]
+                
                 fig = go.Figure()
-                for model_key in selected_models:
+                colors = {"llama-3.1-8b-instant": "#667eea",
+                         "mixtral-8x7b-32768": "#f59e0b",
+                         "gemma2-9b-it": "#10b981"}
+                
+                for model_key in st.session_state.wizard_state["models"]:
                     if model_key in model_avg.index:
                         vals = model_avg.loc[model_key, dimensions].tolist()
                         vals_closed = vals + [vals[0]]
                         labels_closed = dim_labels + [dim_labels[0]]
-                        color = colors.get(model_key, "#ffffff")
                         fig.add_trace(go.Scatterpolar(
-                            r=vals_closed,
-                            theta=labels_closed,
-                            fill='toself',
-                            fillcolor=color + "22",
-                            line=dict(color=color, width=2),
+                            r=vals_closed, theta=labels_closed,
+                            fill='toself', fillcolor=colors.get(model_key, "#667eea") + "33",
+                            line=dict(color=colors.get(model_key, "#667eea"), width=2),
                             name=MODELS[model_key]["label"]
                         ))
-
+                
                 fig.update_layout(
                     polar=dict(
-                        bgcolor="#0d0d1a",
-                        radialaxis=dict(visible=True, range=[0, 10],
-                                       gridcolor="#1e1e2e", tickcolor="#444460",
-                                       tickfont=dict(color="#444460", size=9)),
-                        angularaxis=dict(gridcolor="#1e1e2e", tickcolor="#888899",
-                                        tickfont=dict(color="#888899", size=10))
+                        bgcolor="rgba(0,0,0,0)",
+                        radialaxis=dict(visible=True, range=[0, 10])
                     ),
-                    paper_bgcolor="#0a0a0f",
-                    plot_bgcolor="#0a0a0f",
-                    font=dict(color="#e8e8e0"),
-                    legend=dict(bgcolor="#0f0f18", bordercolor="#1e1e2e", borderwidth=1,
-                                font=dict(size=11)),
-                    margin=dict(l=40, r=40, t=20, b=20),
-                    height=380
+                    paper_bgcolor="white",
+                    font=dict(color="#1a1f36"),
+                    height=400
                 )
                 st.plotly_chart(fig, use_container_width=True)
-
-            with col_right:
-                st.markdown('<div class="section-header">Overall Score by Model</div>', unsafe_allow_html=True)
-
-                bar_colors = [colors.get(m, "#ffffff") for m in model_avg.index]
+            
+            with col2:
+                # Score comparison
+                bar_colors = [colors.get(m, "#667eea") for m in model_avg.index]
                 fig2 = go.Figure(go.Bar(
                     x=[MODELS[m]["label"] for m in model_avg.index],
                     y=model_avg["overall"].values,
-                    marker=dict(color=bar_colors, opacity=0.85),
+                    marker=dict(color=bar_colors),
                     text=[f"{v:.2f}" for v in model_avg["overall"].values],
-                    textposition="outside",
-                    textfont=dict(color="#e8e8e0", size=13, family="JetBrains Mono")
+                    textposition="outside"
                 ))
                 fig2.update_layout(
-                    paper_bgcolor="#0a0a0f",
-                    plot_bgcolor="#0d0d1a",
-                    font=dict(color="#e8e8e0"),
-                    xaxis=dict(gridcolor="#1e1e2e", tickfont=dict(size=11)),
-                    yaxis=dict(range=[0, 10.5], gridcolor="#1e1e2e", tickfont=dict(size=10)),
-                    margin=dict(l=20, r=20, t=20, b=20),
-                    height=200,
-                    showlegend=False
+                    paper_bgcolor="white",
+                    plot_bgcolor="white",
+                    font=dict(color="#1a1f36"),
+                    yaxis=dict(range=[0, 10.5]),
+                    height=400
                 )
                 st.plotly_chart(fig2, use_container_width=True)
+        
+        # Download results
+        csv_data = df.to_csv(index=False)
+        st.download_button(
+            label="📥 Download Results CSV",
+            data=csv_data,
+            file_name=f"benchmark_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            mime="text/csv"
+        )
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🔄 Run Another Benchmark"):
+                st.session_state.wizard_step = 0
+                st.rerun()
+        with col2:
+            if st.button("📊 Go to Leaderboard"):
+                st.switch_page("app.py?tab=leaderboard")
 
-                st.markdown('<div class="section-header">Score Breakdown</div>', unsafe_allow_html=True)
-
-                dim_short = {
-                    "instruction_following": "Instruction Following",
-                    "factual_accuracy": "Factual Accuracy",
-                    "conciseness": "Conciseness",
-                    "naturalness": "Naturalness",
-                    "format_adherence": "Format Adherence"
-                }
-                score_data = []
-                for model_key in selected_models:
-                    if model_key in model_avg.index:
-                        for dim, label in dim_short.items():
-                            score_data.append({
-                                "Model": MODELS[model_key]["label"],
-                                "Dimension": label,
-                                "Score": round(model_avg.loc[model_key, dim], 2)
-                            })
-
-                score_df = pd.DataFrame(score_data)
-                pivot = score_df.pivot(index="Dimension", columns="Model", values="Score")
-                st.dataframe(
-                    pivot.style.background_gradient(cmap="Greens", vmin=0, vmax=10)
-                         .format("{:.2f}"),
-                    use_container_width=True
-                )
-
-        with tab2:
-            st.markdown('<div class="section-header">Performance by Category</div>', unsafe_allow_html=True)
-
-            cat_breakdown = df.groupby(["category", "model"])["overall"].agg(["mean", "std", "count"]).reset_index()
-            
-            categories = df["category"].unique()
-            for category in sorted(categories):
-                cat_data = cat_breakdown[cat_breakdown["category"] == category]
-                
-                fig_cat = go.Figure()
-                for _, row in cat_data.iterrows():
-                    model_key = row["model"]
-                    color = colors.get(model_key, "#ffffff")
-                    fig_cat.add_trace(go.Bar(
-                        name=MODELS[model_key]["label"],
-                        x=[MODELS[model_key]["label"]],
-                        y=[row["mean"]],
-                        error_y=dict(type='data', array=[row["std"]]),
-                        marker=dict(color=color, opacity=0.85),
-                        text=f"{row['mean']:.2f}",
-                        textposition="outside"
-                    ))
-                
-                fig_cat.update_layout(
-                    title=f"📌 {category.upper().replace('_', ' ')}",
-                    paper_bgcolor="#0a0a0f",
-                    plot_bgcolor="#0d0d1a",
-                    font=dict(color="#e8e8e0", size=10),
-                    xaxis=dict(gridcolor="#1e1e2e"),
-                    yaxis=dict(range=[0, 10.5], gridcolor="#1e1e2e"),
-                    height=250,
-                    showlegend=False,
-                    margin=dict(l=40, r=20, t=60, b=20)
-                )
-                st.plotly_chart(fig_cat, use_container_width=True, key=f"cat_{category}")
-
-        with tab3:
-            st.markdown('<div class="section-header">Response Comparison by Prompt</div>', unsafe_allow_html=True)
-
-            prompts_list = df["prompt"].unique().tolist()
-            selected_prompt_idx = st.selectbox(
-                "Select prompt",
-                options=range(len(prompts_list)),
-                format_func=lambda i: f"[{df[df['prompt']==prompts_list[i]]['category'].iloc[0].upper()}] {prompts_list[i][:80]}..."
-                if len(prompts_list[i]) > 80 else f"[{df[df['prompt']==prompts_list[i]]['category'].iloc[0].upper()}] {prompts_list[i]}"
-            )
-
-            selected_prompt = prompts_list[selected_prompt_idx]
-            prompt_df = df[df["prompt"] == selected_prompt].drop_duplicates(subset=["model"])
-
-            st.markdown(f"""
-            <div style='background: #0d0d1a; border: 1px solid #2a2a4a; border-radius: 4px; padding: 14px 18px; margin: 12px 0;'>
-                <div style='font-size: 0.65rem; color: #444460; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 6px;'>Prompt</div>
-                <div style='font-size: 0.9rem; color: #c8c8d0; line-height: 1.6;'>{selected_prompt}</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-            cols = st.columns(len(prompt_df))
-            for i, (_, row) in enumerate(prompt_df.iterrows()):
-                with cols[i]:
-                    color = colors.get(row["model"], "#ffffff")
-                    st.markdown(f"""
-                    <div style='border-top: 2px solid {color}; padding-top: 12px; margin-bottom: 8px;'>
-                        <div style='font-size: 0.8rem; font-weight: 700; color: {color};'>{MODELS[row['model']]['label']}</div>
-                        <div style='font-size: 0.65rem; color: #444460; font-family: JetBrains Mono;'>overall: {row.get('overall', 0):.1f}/10</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                    st.markdown(f'<div class="response-box">{row["response"]}</div>', unsafe_allow_html=True)
-
-                    judge_text = row.get("judge_reasoning", "No judge feedback available.")
-                    st.markdown(f'<div class="judge-verdict">🧑‍⚖️ {judge_text}</div>', unsafe_allow_html=True)
-
-                    for dim, label in [("instruction_following", "Instr"), ("naturalness", "Natural"),
-                                       ("conciseness", "Concise"), ("factual_accuracy", "Factual")]:
-                        score = row.get(dim, 0)
-                        pct = score * 10
-                        st.markdown(f"""
-                        <div class="score-bar-container">
-                            <div class="score-bar-label"><span>{label}</span><span style="color: {color};">{score:.1f}</span></div>
-                            <div class="score-bar"><div class="score-fill" style="width: {pct}%; background: {color};"></div></div>
-                        </div>
-                        """, unsafe_allow_html=True)
-
-        with tab4:
-            st.markdown('<div class="section-header">Raw Evaluation Data</div>', unsafe_allow_html=True)
-
-            display_cols = ["model", "category", "prompt", "instruction_following",
-                            "factual_accuracy", "conciseness", "naturalness", "format_adherence", "overall", "run_num"]
-            display_df = df[display_cols].copy()
-            display_df["model"] = display_df["model"].map(lambda x: MODELS[x]["label"])
-            display_df.columns = [c.replace("_", " ").title() for c in display_df.columns]
-
-            st.dataframe(display_df, use_container_width=True, height=400)
-
-            csv = df.to_csv(index=False)
-            st.download_button(
-                label="📥 Download Results CSV",
-                data=csv,
-                file_name=f"eval_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                mime="text/csv"
-            )
-    else:
-        st.info("⚡ Run an evaluation to see results here.")
-
-
-# ── TAB 2: Leaderboard ────────────────────────────────────────────────────────
-with nav_tab2:
-    st.markdown('<div class="section-header">Accumulated Leaderboard</div>', unsafe_allow_html=True)
-    
-    leaderboard = load_leaderboard()
+# ════════════════════════════════════════════════════════════════════════════
+# TAB 2: LEADERBOARD (Historical data)
+# ════════════════════════════════════════════════════════════════════════════
+with tab_leaderboard:
+    st.markdown("### 🏆 All-Time Model Rankings")
     
     if not leaderboard.empty:
-        # Aggregate total stats
+        # Aggregate stats
         leaderboard_agg = leaderboard.groupby("model").agg({
-            "overall_mean": "mean",
-            "num_evals": "sum",
-            "instruction_following_mean": "mean",
-            "factual_accuracy_mean": "mean",
-            "conciseness_mean": "mean",
-            "naturalness_mean": "mean",
-            "format_adherence_mean": "mean"
-        }).round(2).sort_values("overall_mean", ascending=False)
-        
+            "overall_mean": ["mean", "count"],
+            "num_evals": "sum"
+        }).round(2)
+        leaderboard_agg.columns = ["avg_score", "num_tests", "total_evals"]
+        leaderboard_agg = leaderboard_agg.sort_values("avg_score", ascending=False)
         leaderboard_agg["rank"] = range(1, len(leaderboard_agg) + 1)
         
-        col1, col2 = st.columns([2, 1])
+        st.markdown("""
+        Your persistent leaderboard accumulates all benchmarks over time. The more you test, the clearer the picture.
+        """)
         
-        with col1:
-            for idx, (model, row) in enumerate(leaderboard_agg.iterrows()):
-                medal = ["🥇", "🥈", "🥉"][idx] if idx < 3 else "•"
-                
-                st.markdown(f"""
+        for idx, (model, row) in enumerate(leaderboard_agg.iterrows()):
+            medal = ["🥇", "🥈", "🥉"][idx] if idx < 3 else "•"
+            
+            st.markdown(f"""
+            <div class="leaderboard-container">
                 <div class="leaderboard-row">
                     <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
                         <span class="leaderboard-medal">{medal}</span>
                         <span class="leaderboard-rank">#{int(row['rank'])}</span>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; color: #e8e8e0;">{model}</div>
-                            <div style="font-size: 0.7rem; color: #666680;">{int(row['num_evals'])} evaluations</div>
+                        <div class="leaderboard-info">
+                            <div class="leaderboard-model">{model}</div>
+                            <div class="leaderboard-evals">{int(row['total_evals'])} evaluations • {int(row['num_tests'])} test runs</div>
                         </div>
                     </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 1.2rem; font-weight: 800; color: #00ff88; font-family: 'JetBrains Mono';">{row['overall_mean']:.2f}</div>
-                        <div style="font-size: 0.7rem; color: #666680;">overall score</div>
-                    </div>
+                    <div class="leaderboard-score">{row['avg_score']:.2f}</div>
                 </div>
-                """, unsafe_allow_html=True)
+            </div>
+            """, unsafe_allow_html=True)
         
+        # Stats
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Total Benchmarks Run", len(leaderboard))
         with col2:
-            st.markdown('<div class="section-header">Dimension Averages</div>', unsafe_allow_html=True)
-            
-            dim_avg = leaderboard_agg[[
-                "instruction_following_mean",
-                "factual_accuracy_mean",
-                "conciseness_mean",
-                "naturalness_mean",
-                "format_adherence_mean"
-            ]].mean()
-            
-            for dim, val in dim_avg.items():
-                dim_name = dim.replace("_mean", "").replace("_", " ").title()
-                st.metric(dim_name, f"{val:.2f}/10")
-        
-        st.markdown("---")
-        st.markdown('<div class="section-header">Leaderboard History</div>', unsafe_allow_html=True)
-        
-        # Show recent entries
-        recent = leaderboard.tail(10).sort_values("timestamp", ascending=False)
-        display_recent = recent[["timestamp", "model", "overall_mean", "overall_std", "num_evals"]].copy()
-        display_recent.columns = ["Timestamp", "Model", "Score", "Variance", "Evals"]
-        st.dataframe(display_recent, use_container_width=True)
+            st.metric("Models Tested", leaderboard["model"].nunique())
+        with col3:
+            st.metric("All-Time High Score", f"{leaderboard['overall_mean'].max():.2f}/10")
         
         # Download leaderboard
-        csv_leaderboard = leaderboard.to_csv(index=False)
         st.download_button(
-            label="📥 Download Full Leaderboard",
-            data=csv_leaderboard,
-            file_name=f"leaderboard_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            label="📥 Export Leaderboard",
+            data=leaderboard.to_csv(index=False),
+            file_name=f"leaderboard_{datetime.now().strftime('%Y%m%d')}.csv",
             mime="text/csv"
         )
     else:
-        st.info("📊 No leaderboard data yet. Run evaluations to populate the leaderboard.")
+        st.markdown("""
+        <div class="empty-state">
+            <div class="empty-icon">📊</div>
+            <div class="empty-title">No benchmarks yet</div>
+            <p>Run your first benchmark to start building the leaderboard!</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("▶ Run First Benchmark", use_container_width=True):
+            st.session_state.wizard_step = 0
+            st.switch_page("app.py?tab=eval")
 
-
-# ── TAB 3: Insights ───────────────────────────────────────────────────────────
-with nav_tab3:
-    st.markdown('<div class="section-header">AI-Generated Insights</div>', unsafe_allow_html=True)
+# ════════════════════════════════════════════════════════════════════════════
+# TAB 3: INSIGHTS
+# ════════════════════════════════════════════════════════════════════════════
+with tab_insights:
+    st.markdown("### 💡 Data-Driven Insights")
     
-    if st.session_state.results:
-        df = pd.DataFrame(st.session_state.results)
-        insights = generate_insights(df, selected_models)
+    if st.session_state.eval_results:
+        df = pd.DataFrame(st.session_state.eval_results)
         
+        st.markdown("""
+        Based on your most recent benchmark, here's what we learned about your models:
+        """)
+        
+        insights = plain_language_insight(df, st.session_state.wizard_state["models"])
         for insight in insights:
-            st.markdown(f'<div class="insights-box">{insight}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="insight-card">{insight}</div>', unsafe_allow_html=True)
         
-        # Additional analysis
-        st.markdown('<div class="section-header">Model Comparison</div>', unsafe_allow_html=True)
+        # Category breakdown
+        st.markdown("### 📚 Performance by Category")
         
-        model_avg = df.groupby("model")[["instruction_following", "factual_accuracy",
-                                          "conciseness", "naturalness", "format_adherence"]].mean()
+        cat_perf = df.groupby(["category", "model"])["overall"].mean().unstack()
         
-        comparison = []
-        for model in selected_models:
-            if model in model_avg.index:
-                comparison.append({
-                    "Model": MODELS[model]["label"],
-                    "Avg Score": round(model_avg.loc[model].mean(), 2),
-                    "Instruction": round(model_avg.loc[model, "instruction_following"], 2),
-                    "Accuracy": round(model_avg.loc[model, "factual_accuracy"], 2),
-                    "Conciseness": round(model_avg.loc[model, "conciseness"], 2),
-                    "Naturalness": round(model_avg.loc[model, "naturalness"], 2),
-                    "Format": round(model_avg.loc[model, "format_adherence"], 2),
-                })
-        
-        comp_df = pd.DataFrame(comparison)
-        st.dataframe(comp_df, use_container_width=True)
-        
+        for category in cat_perf.index:
+            best_for_cat = cat_perf.loc[category].idxmax()
+            best_score = cat_perf.loc[category].max()
+            st.info(f"**{category.replace('_', ' ').title()}**: {best_for_cat} leads with {best_score:.1f}/10")
+    
+    elif not leaderboard.empty:
+        st.markdown("### Historical Trends")
+        st.info("💡 Run a fresh benchmark to see insights about your current models.")
     else:
-        st.info("🎯 Run an evaluation to generate insights.")
+        st.markdown("""
+        <div class="empty-state">
+            <div class="empty-icon">🧠</div>
+            <div class="empty-title">No insights yet</div>
+            <p>Run a benchmark first to generate insights</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-
-# ── TAB 4: Custom Evaluation ──────────────────────────────────────────────────
-with nav_tab4:
-    st.markdown('<div class="section-header">Custom Prompt Evaluation</div>', unsafe_allow_html=True)
+# ════════════════════════════════════════════════════════════════════════════
+# TAB 4: CUSTOM TEST
+# ════════════════════════════════════════════════════════════════════════════
+with tab_custom:
     st.markdown("""
-    <p style="font-size: 0.85rem; color: #888899; line-height: 1.6;">
-    Enter your own prompt and evaluate it live across selected models. Great for testing custom prompts and understanding model strengths in your specific use case.
-    </p>
-    """, unsafe_allow_html=True)
+    ### ⚙️ Test Your Own Prompt
     
-    col_left, col_right = st.columns([2, 1])
+    Have a specific use case? Write your own prompt and see how each model handles it.
+    """)
     
-    with col_left:
-        custom_prompt = st.text_area(
-            "Your custom prompt",
-            placeholder="E.g., 'Write a professional email about...'",
-            height=150,
-            label_visibility="collapsed"
-        )
+    custom_prompt = st.text_area(
+        "Your prompt",
+        placeholder="E.g., 'Write a professional email requesting a meeting about Q3 results'",
+        height=120,
+        label_visibility="collapsed"
+    )
     
-    with col_right:
+    col1, col2 = st.columns(2)
+    with col1:
         custom_api_key = st.text_input("Groq API Key", type="password", placeholder="gsk_...", label_visibility="collapsed")
         custom_models = st.multiselect(
             "Models to test",
@@ -896,88 +849,46 @@ with nav_tab4:
             format_func=lambda x: MODELS[x]["label"],
             label_visibility="collapsed"
         )
-        custom_judge = st.selectbox(
-            "Judge model",
-            options=["llama-3.1-8b-instant", "mixtral-8x7b-32768"],
-            label_visibility="collapsed"
-        )
-        run_custom = st.button("▶  EVALUATE CUSTOM PROMPT", use_container_width=True)
     
-    if run_custom:
+    with col2:
+        st.markdown("**Preview:**")
+        if custom_prompt:
+            st.caption(custom_prompt[:100] + "..." if len(custom_prompt) > 100 else custom_prompt)
+    
+    if st.button("🚀 Evaluate Now", use_container_width=True):
         if not custom_prompt.strip():
-            st.error("⚠ Please enter a prompt to evaluate.")
+            st.error("⚠️ Please enter a prompt")
         elif not custom_api_key:
-            st.error("⚠ Please provide your Groq API key.")
+            st.error("⚠️ Please provide your Groq API key")
         elif not custom_models:
-            st.error("⚠ Select at least one model.")
+            st.error("⚠️ Select at least one model")
         else:
             from evaluator import get_model_response, judge_response
             from groq import Groq
             
             client = Groq(api_key=custom_api_key)
             
-            with st.spinner("Evaluating custom prompt..."):
-                custom_results = []
+            with st.spinner("Testing your prompt..."):
+                try:
+                    results_container = st.container()
+                    
+                    for model in custom_models:
+                        response = get_model_response(client, model, custom_prompt)
+                        time.sleep(0.3)
+                        
+                        scores = judge_response(client, "llama-3.1-8b-instant", custom_prompt, response)
+                        
+                        score_keys = ["instruction_following", "factual_accuracy", "conciseness", "naturalness", "format_adherence"]
+                        overall = sum(scores.get(k, 5) for k in score_keys) / len(score_keys)
+                        
+                        with results_container.container():
+                            st.markdown(f"#### {MODELS[model]['label']} — {overall:.1f}/10")
+                            st.write(response)
+                            st.caption(f"🧑‍⚖️ Judge: {scores.get('reasoning', 'No feedback')}")
+                        
+                        time.sleep(0.5)
+                    
+                    st.success("✅ Done!")
                 
-                for model in custom_models:
-                    progress_text = st.empty()
-                    progress_text.text(f"Getting response from {MODELS[model]['label']}...")
-                    
-                    response = get_model_response(client, model, custom_prompt)
-                    time.sleep(0.3)
-                    
-                    progress_text.text(f"Judging {MODELS[model]['label']} response...")
-                    scores = judge_response(client, custom_judge, custom_prompt, response)
-                    
-                    score_keys = ["instruction_following", "factual_accuracy", "conciseness", "naturalness", "format_adherence"]
-                    overall = sum(scores.get(k, 5) for k in score_keys) / len(score_keys)
-                    
-                    custom_results.append({
-                        "model": model,
-                        "response": response,
-                        "scores": scores,
-                        "overall": overall
-                    })
-                    
-                    time.sleep(0.5)
-                
-                progress_text.empty()
-                st.success("✓ Evaluation complete")
-            
-            st.markdown("---")
-            st.markdown('<div class="section-header">Results</div>', unsafe_allow_html=True)
-            
-            cols = st.columns(len(custom_results))
-            for i, result in enumerate(custom_results):
-                with cols[i]:
-                    model_key = result["model"]
-                    color = colors.get(model_key, "#ffffff")
-                    
-                    st.markdown(f"""
-                    <div style='border-top: 2px solid {color}; padding-top: 12px; margin-bottom: 8px;'>
-                        <div style='font-size: 0.8rem; font-weight: 700; color: {color};'>{MODELS[model_key]['label']}</div>
-                        <div style='font-size: 1.1rem; font-weight: 800; color: {color}; font-family: JetBrains Mono;'>{result['overall']:.1f}/10</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown(f'<div class="response-box">{result["response"]}</div>', unsafe_allow_html=True)
-                    
-                    judge_text = result["scores"].get("reasoning", "No feedback available.")
-                    st.markdown(f'<div class="judge-verdict">🧑‍⚖️ {judge_text}</div>', unsafe_allow_html=True)
-                    
-                    for dim, label in [("instruction_following", "Instr"), ("naturalness", "Natural"),
-                                       ("conciseness", "Concise"), ("factual_accuracy", "Factual")]:
-                        score = result["scores"].get(dim, 5)
-                        pct = score * 10
-                        st.markdown(f"""
-                        <div class="score-bar-container">
-                            <div class="score-bar-label"><span>{label}</span><span style="color: {color};">{score:.1f}</span></div>
-                            <div class="score-bar"><div class="score-fill" style="width: {pct}%; background: {color};"></div></div>
-                        </div>
-                        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="insights-box" style="margin-top: 32px;">
-        💡 <strong>Use cases:</strong> Test domain-specific prompts, compare model quality on your exact use case, or explore new prompt engineering techniques interactively.
-        </div>
-        """, unsafe_allow_html=True)
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")

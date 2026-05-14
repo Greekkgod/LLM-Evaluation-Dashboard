@@ -1,0 +1,4 @@
+timestamp,model,model_key,num_evals,overall_mean,overall_std,instruction_following_mean,factual_accuracy_mean,conciseness_mean,naturalness_mean,format_adherence_mean
+2026-05-14T16:30:23.952372,Gemma 2 9B,gemma2-9b-it,10,5.0,0.0,5.0,5.0,5.0,5.0,5.0
+2026-05-14T16:30:23.963565,Llama 3.1 8B,llama-3.1-8b-instant,10,5.0,0.0,5.0,5.0,5.0,5.0,5.0
+2026-05-14T16:30:23.966058,Mixtral 8x7B,mixtral-8x7b-32768,10,5.0,0.0,5.0,5.0,5.0,5.0,5.0
