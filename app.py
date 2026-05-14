@@ -559,17 +559,14 @@ with tab_eval:
                           st.session_state.wizard_state["num_prompts"] * 
                           st.session_state.wizard_state["num_runs"])
             
-            eval_count = 0
             messages_log = []
             
             def progress_callback(progress, message):
-                nonlocal eval_count, messages_log
-                eval_count += 1
                 messages_log.append(message)
                 
                 # Keep last 8 messages
                 if len(messages_log) > 8:
-                    messages_log = messages_log[-8:]
+                    messages_log[:] = messages_log[-8:]
                 
                 progress_bar.progress(min(progress, 0.99))
                 with progress_log:
@@ -652,9 +649,12 @@ with tab_eval:
                 dim_labels = ["Instruction", "Accuracy", "Conciseness", "Naturalness", "Format"]
                 
                 fig = go.Figure()
-                colors = {"llama-3.1-8b-instant": "#667eea",
-                         "mixtral-8x7b-32768": "#f59e0b",
-                         "gemma2-9b-it": "#10b981"}
+                colors = {"llama-3.1-8b-instant": "rgba(102, 126, 234, 0.2)",
+                         "mixtral-8x7b-32768": "rgba(245, 158, 11, 0.2)",
+                         "gemma2-9b-it": "rgba(16, 185, 129, 0.2)"}
+                colors_solid = {"llama-3.1-8b-instant": "#667eea",
+                               "mixtral-8x7b-32768": "#f59e0b",
+                               "gemma2-9b-it": "#10b981"}
                 
                 for model_key in st.session_state.wizard_state["models"]:
                     if model_key in model_avg.index:
@@ -663,8 +663,8 @@ with tab_eval:
                         labels_closed = dim_labels + [dim_labels[0]]
                         fig.add_trace(go.Scatterpolar(
                             r=vals_closed, theta=labels_closed,
-                            fill='toself', fillcolor=colors.get(model_key, "#667eea") + "33",
-                            line=dict(color=colors.get(model_key, "#667eea"), width=2),
+                            fill='toself', fillcolor=colors.get(model_key, "rgba(102, 126, 234, 0.2)"),
+                            line=dict(color=colors_solid.get(model_key, "#667eea"), width=2),
                             name=MODELS[model_key]["label"]
                         ))
                 
