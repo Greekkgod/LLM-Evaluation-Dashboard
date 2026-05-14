@@ -114,11 +114,13 @@ def run_evaluation(
     categories: list,
     num_prompts: int,
     judge_model: str,
+    num_runs: int = 1,
     progress_callback=None
 ) -> list:
     """
     Main evaluation runner.
-    Returns a list of result dicts, one per (model, prompt) pair.
+    Returns a list of result dicts, one per (model, prompt, run) tuple.
+    num_runs: For confidence intervals, run each prompt N times per model.
     """
     client = Groq(api_key=api_key)
 
@@ -129,7 +131,7 @@ def run_evaluation(
         for prompt in category_prompts:
             prompts_to_run.append({"category": category, "prompt": prompt})
 
-    total_steps = len(prompts_to_run) * len(models)
+    total_steps = len(prompts_to_run) * len(models) * num_runs
     step = 0
     results = []
 
@@ -138,50 +140,53 @@ def run_evaluation(
         prompt = prompt_item["prompt"]
 
         for model in models:
-            step += 1
-            progress = step / total_steps
+            for run_num in range(num_runs):
+                step += 1
+                progress = step / total_steps
 
-            if progress_callback:
-                progress_callback(
-                    progress,
-                    f"[{step}/{total_steps}] Running {MODELS[model]['label']} on {category} prompt..."
-                )
+                run_label = f" (run {run_num+1}/{num_runs})" if num_runs > 1 else ""
+                if progress_callback:
+                    progress_callback(
+                        progress,
+                        f"[{step}/{total_steps}] Running {MODELS[model]['label']} on {category} prompt{run_label}..."
+                    )
 
-            # Get model response
-            response = get_model_response(client, model, prompt)
+                # Get model response
+                response = get_model_response(client, model, prompt)
 
-            # Small delay to respect rate limits
-            time.sleep(0.3)
+                # Small delay to respect rate limits
+                time.sleep(0.3)
 
-            # Judge the response
-            if progress_callback:
-                progress_callback(
-                    progress,
-                    f"[{step}/{total_steps}] Judging {MODELS[model]['label']} response..."
-                )
+                # Judge the response
+                if progress_callback:
+                    progress_callback(
+                        progress,
+                        f"[{step}/{total_steps}] Judging {MODELS[model]['label']} response..."
+                    )
 
-            scores = judge_response(client, judge_model, prompt, response)
+                scores = judge_response(client, judge_model, prompt, response)
 
-            # Compute overall
-            score_keys = ["instruction_following", "factual_accuracy",
-                          "conciseness", "naturalness", "format_adherence"]
-            overall = sum(scores.get(k, 5) for k in score_keys) / len(score_keys)
+                # Compute overall
+                score_keys = ["instruction_following", "factual_accuracy",
+                              "conciseness", "naturalness", "format_adherence"]
+                overall = sum(scores.get(k, 5) for k in score_keys) / len(score_keys)
 
-            results.append({
-                "model": model,
-                "category": category,
-                "prompt": prompt,
-                "response": response,
-                "instruction_following": scores.get("instruction_following", 5),
-                "factual_accuracy": scores.get("factual_accuracy", 5),
-                "conciseness": scores.get("conciseness", 5),
-                "naturalness": scores.get("naturalness", 5),
-                "format_adherence": scores.get("format_adherence", 5),
-                "overall": round(overall, 2),
-                "judge_reasoning": scores.get("reasoning", "")
-            })
+                results.append({
+                    "model": model,
+                    "category": category,
+                    "prompt": prompt,
+                    "response": response,
+                    "instruction_following": scores.get("instruction_following", 5),
+                    "factual_accuracy": scores.get("factual_accuracy", 5),
+                    "conciseness": scores.get("conciseness", 5),
+                    "naturalness": scores.get("naturalness", 5),
+                    "format_adherence": scores.get("format_adherence", 5),
+                    "overall": round(overall, 2),
+                    "judge_reasoning": scores.get("reasoning", ""),
+                    "run_num": run_num + 1
+                })
 
-            # Delay between models on same prompt
-            time.sleep(0.5)
+                # Delay between models on same prompt
+                time.sleep(0.5)
 
     return results
